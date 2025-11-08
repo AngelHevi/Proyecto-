@@ -27,15 +27,7 @@ void guardarTicket(struct Pedido pedido);
 // -----------------------------
 // FUNCION PRINCIPAL
 // -----------------------------
-/***********************************
-*                                  *
-*                                  *
-*      HOLAAAAAA                   *
-*      Me llamo Erick              *
-*                                  *
-*                                  * 
-*                                  *
-***********************************/
+
 int main() {
     struct Pedido pedido;
     pedido.numProductos = 0;

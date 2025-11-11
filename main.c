@@ -3,7 +3,7 @@
 #include <string.h>
 
 // -----------------------------
-// ESTRUCTURAS
+// Proyecto menu
 // -----------------------------
 struct Producto {
     char nombre[30];
@@ -17,30 +17,36 @@ struct Pedido {
 };
 
 // -----------------------------
-// PROTOTIPOS
+// Loops
 // -----------------------------
 void mostrarMenu();
 void tomarPedido(struct Pedido *pedido);
 void mostrarPedido(struct Pedido pedido);
-void guardarTicket(struct Pedido pedido);
+void guardarTicket(struct Pedido *pedido);
+void mostrarTickets();
 
 // -----------------------------
-// FUNCION PRINCIPAL
+// contador de tickets
 // -----------------------------
+int contadorTickets = 1;
 
+// -----------------------------
+// Aqui la main, la mera buena
+// -----------------------------
 int main() {
     struct Pedido pedido;
     pedido.numProductos = 0;
 
     int opcion;
     do {
-        printf("\n========= SISTEMA DE MENU PARA MESEROS =========\n");
+        printf("\n--------- SISTEMA DE MENU PARA MESEROS ---------\n");
         printf("1. Ver menu de restaurante\n");
         printf("2. Tomar pedido\n");
         printf("3. Mostrar pedido actual\n");
         printf("4. Guardar ticket\n");
         printf("5. Salir\n");
-        printf("===============================================\n");
+        printf("6. Mostrar tickets guardados\n");
+        printf("---------------------------------------------------\n");
         printf("Elige una opcion: ");
         scanf("%d", &opcion);
         getchar();
@@ -56,24 +62,27 @@ int main() {
                 mostrarPedido(pedido);
                 break;
             case 4:
-                guardarTicket(pedido);
+                guardarTicket(&pedido);
                 break;
             case 5:
                 printf("\nSaliendo del sistema...\n");
+                break;
+            case 6:
+                mostrarTickets();
                 break;
             default:
                 printf("\nOpcion no valida.\n");
         }
     } while(opcion != 5);
 
+
     return 0;
 }
 
 // -----------------------------
-// FUNCIONES
+// Funcones
 // -----------------------------
 
-// Mostrar menú de productos
 void mostrarMenu() {
     printf("\n---- MENU DE COMIDAS Y BEBIDAS ----\n");
     printf("1. Hamburguesa ............ $80\n");
@@ -81,11 +90,10 @@ void mostrarMenu() {
     printf("3. Enchiladas ............. $75\n");
     printf("4. Refresco ............... $25\n");
     printf("5. Agua natural ........... $15\n");
-    printf("6. Café ................... $30\n");
+    printf("6. Cafe ................... $30\n");
     printf("----------------------------------\n");
 }
 
-// Tomar pedido del cliente
 void tomarPedido(struct Pedido *pedido) {
     int opcion, cantidad;
     char continuar;
@@ -118,15 +126,15 @@ void tomarPedido(struct Pedido *pedido) {
         pedido->cantidad[pedido->numProductos] = cantidad;
         pedido->numProductos++;
 
-        printf("\n¿Desea agregar otro producto? (s/n): ");
+        printf("\n�Desea agregar otro producto? (s/n): ");
         scanf(" %c", &continuar);
 
     } while((continuar == 's' || continuar == 'S') && pedido->numProductos < 20);
 
     printf("\nPedido registrado correctamente.\n");
+    system("cls");
 }
 
-// Mostrar pedido actual
 void mostrarPedido(struct Pedido pedido) {
     if (pedido.numProductos == 0) {
         printf("\nNo hay productos en el pedido.\n");
@@ -145,30 +153,59 @@ void mostrarPedido(struct Pedido pedido) {
     printf("TOTAL: $%.2f\n", total);
 }
 
-// Guardar ticket del pedido
-void guardarTicket(struct Pedido pedido) {
-    if (pedido.numProductos == 0) {
+void guardarTicket(struct Pedido *pedido) {
+    if (pedido->numProductos == 0) {
         printf("\nNo hay pedido para guardar.\n");
         return;
     }
 
-    FILE *archivo = fopen("ticket.txt", "a");
+    char nombreArchivo[50];
+    sprintf(nombreArchivo, "ticket_%d.txt", contadorTickets);
+
+    FILE *archivo = fopen(nombreArchivo, "w");
     if (!archivo) {
         printf("\nError al guardar el ticket.\n");
         return;
     }
 
     float total = 0;
-    fprintf(archivo, "------ TICKET NUEVO ------\n");
-    for (int i = 0; i < pedido.numProductos; i++) {
-        float subtotal = pedido.productos[i].precio * pedido.cantidad[i];
-        fprintf(archivo, "%s x%d = $%.2f\n", pedido.productos[i].nombre,
-                pedido.cantidad[i], subtotal);
+    fprintf(archivo, "------ TICKET %d ------\n", contadorTickets);
+    for (int i = 0; i < pedido->numProductos; i++) {
+        float subtotal = pedido->productos[i].precio * pedido->cantidad[i];
+        fprintf(archivo, "%s x%d = $%.2f\n",
+                pedido->productos[i].nombre,
+                pedido->cantidad[i],
+                subtotal);
         total += subtotal;
+
     }
-    fprintf(archivo, "TOTAL: $%.2f\n\n", total);
+    fprintf(archivo, "TOTAL: $%.2f\n", total);
     fclose(archivo);
 
-    printf("\nTicket guardado en 'ticket.txt'\n");
+    printf("\nTicket guardado como '%s'\n", nombreArchivo);
+
+    pedido->numProductos = 0;
+    contadorTickets++;
 }
 
+void mostrarTickets() {
+    printf("\n------ TICKETS GUARDADOS ------\n");
+
+    for (int i = 1; i < contadorTickets; i++) {
+        char nombreArchivo[50];
+        sprintf(nombreArchivo, "ticket_%d.txt", i);
+
+        FILE *archivo = fopen(nombreArchivo, "r");
+        if (!archivo) {
+            continue;
+        }
+
+        printf("\nContenido de %s:\n", nombreArchivo);
+
+        char linea[100];
+        while (fgets(linea, sizeof(linea), archivo)) {
+            printf("%s", linea);
+        }
+        fclose(archivo);
+    }
+}
